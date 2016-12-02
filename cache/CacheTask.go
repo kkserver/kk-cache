@@ -6,7 +6,8 @@ import (
 
 type CacheTaskResult struct {
 	app.Result
-	Value string `json:"value,omitempty"`
+	Expires int64  `json:"expires"`
+	Value   string `json:"value,omitempty"`
 }
 
 type CacheTask struct {

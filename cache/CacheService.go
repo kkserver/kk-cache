@@ -83,6 +83,7 @@ func (S *CacheService) HandleCacheTask(a app.IApp, task *CacheTask) error {
 		if ok {
 			v.Ctime = time.Now().Unix()
 			task.Result.Value = v.Value
+			task.Result.Expires = v.Expires
 			cleaning = S.cleaning
 		} else {
 			task.Result.Errno = ERROR_CACHE
