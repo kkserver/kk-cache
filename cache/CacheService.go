@@ -56,6 +56,12 @@ func (S *CacheService) clean() {
 
 		S.cleaning = false
 
+		if S.size > 0 {
+			S.dispatch.AsyncDelay(func() {
+				S.clean()
+			}, time.Second*6)
+		}
+
 		log.Println("[CacheService][clean]", keys)
 
 	}
