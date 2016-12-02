@@ -3,6 +3,7 @@ package cache
 import (
 	"github.com/kkserver/kk-lib/kk"
 	"github.com/kkserver/kk-lib/kk/app"
+	"log"
 	"strings"
 	"time"
 )
@@ -54,6 +55,8 @@ func (S *CacheService) clean() {
 		S.size = S.size - size
 
 		S.cleaning = false
+
+		log.Println("[CacheService][clean]", keys)
 
 	}
 
