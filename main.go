@@ -12,15 +12,21 @@ func main() {
 
 	log.SetFlags(log.Llongfile | log.LstdFlags)
 
-	config := "./app.ini"
+	env := "./config/env.ini"
 
 	if len(os.Args) > 1 {
-		config = os.Args[1]
+		env = os.Args[1]
 	}
 
 	a := cache.CacheApp{}
 
-	err := app.Load(&a, config)
+	err := app.Load(&a, "./app.ini")
+
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	err := app.Load(&a, env)
 
 	if err != nil {
 		log.Panicln(err)
