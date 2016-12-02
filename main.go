@@ -26,7 +26,7 @@ func main() {
 		log.Panicln(err)
 	}
 
-	err := app.Load(&a, env)
+	err = app.Load(&a, env)
 
 	if err != nil {
 		log.Panicln(err)
