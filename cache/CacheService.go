@@ -22,6 +22,7 @@ type CacheService struct {
 	Get     *CacheTask
 	Set     *CacheSetTask
 	Remove  *CacheRemoveTask
+	Keys    *CacheKeysTask
 
 	dispatch *kk.Dispatch
 	objects  map[string]*CacheObject
@@ -194,6 +195,27 @@ func (S *CacheService) HandleCacheRemoveTask(a app.IApp, task *CacheRemoveTask) 
 				S.size = S.size - v.Size
 			}
 		}
+
+	})
+
+	return nil
+}
+
+func (S *CacheService) HandleCacheKeysTask(a app.IApp, task *CacheKeysTask) error {
+
+	S.dispatch.Sync(func() {
+
+		var keys = []string{}
+
+		for key, _ := range S.objects {
+
+			if strings.HasPrefix(key, task.Prefix) {
+				keys = append(keys, key)
+			}
+
+		}
+
+		task.Result.Keys = keys
 
 	})
 
