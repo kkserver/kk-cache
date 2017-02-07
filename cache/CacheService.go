@@ -26,15 +26,22 @@ type CacheService struct {
 
 	dispatch *kk.Dispatch
 	objects  map[string]*CacheObject
-	cleaning bool
 	size     int
 }
 
-func (S *CacheService) clean() {
+func (S *CacheService) Handle(a app.IApp, task app.ITask) error {
+	return app.ServiceReflectHandle(a, task, S)
+}
 
-	if !S.cleaning {
+func (S *CacheService) HandleInitTask(a app.IApp, task *app.InitTask) error {
 
-		S.cleaning = true
+	S.objects = map[string]*CacheObject{}
+	S.dispatch = kk.NewDispatch()
+	S.size = 0
+
+	var fn func() = nil
+
+	fn = func() {
 
 		var keys = []string{}
 		var now = time.Now().Unix()
@@ -55,36 +62,17 @@ func (S *CacheService) clean() {
 
 		S.size = S.size - size
 
-		S.cleaning = false
-
-		if S.size > 0 {
-			S.dispatch.AsyncDelay(func() {
-				S.clean()
-			}, time.Second*6)
-		}
-
 		log.Println("[CacheService][clean]", keys)
 
+		S.dispatch.AsyncDelay(fn, time.Second*6)
 	}
 
-}
-
-func (S *CacheService) Handle(a app.IApp, task app.ITask) error {
-	return app.ServiceReflectHandle(a, task, S)
-}
-
-func (S *CacheService) HandleInitTask(a app.IApp, task *app.InitTask) error {
-
-	S.objects = map[string]*CacheObject{}
-	S.dispatch = kk.NewDispatch()
-	S.size = 0
+	S.dispatch.AsyncDelay(fn, time.Second*6)
 
 	return nil
 }
 
 func (S *CacheService) HandleCacheTask(a app.IApp, task *CacheTask) error {
-
-	var cleaning = false
 
 	S.dispatch.Sync(func() {
 
@@ -94,27 +82,17 @@ func (S *CacheService) HandleCacheTask(a app.IApp, task *CacheTask) error {
 			v.Ctime = time.Now().Unix()
 			task.Result.Value = v.Value
 			task.Result.Expires = v.Expires
-			cleaning = S.cleaning
 		} else {
 			task.Result.Errno = ERROR_CACHE
 			task.Result.Errmsg = "Not found value"
-			cleaning = true
 		}
 
 	})
-
-	if !cleaning {
-		S.dispatch.AsyncDelay(func() {
-			S.clean()
-		}, time.Second*6)
-	}
 
 	return nil
 }
 
 func (S *CacheService) HandleCacheSetTask(a app.IApp, task *CacheSetTask) error {
-
-	var cleaning = false
 
 	S.dispatch.Sync(func() {
 
@@ -150,14 +128,7 @@ func (S *CacheService) HandleCacheSetTask(a app.IApp, task *CacheSetTask) error 
 
 		}
 
-		cleaning = S.cleaning
 	})
-
-	if !cleaning {
-		S.dispatch.AsyncDelay(func() {
-			S.clean()
-		}, time.Second*6)
-	}
 
 	return nil
 }
